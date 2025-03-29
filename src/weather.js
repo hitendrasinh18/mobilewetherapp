@@ -1,160 +1,199 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TextInput, View, Image, Dimensions, ImageBackground, TouchableOpacity, SafeAreaView, error } from 'react-native';
-import React from 'react';
-import { useState, useEffect } from 'react';
+import { StyleSheet, Text, TextInput, View, Image, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
 import axios from 'axios';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
 export default function Weather() {
-
   const [inputVisible, setInputVisible] = useState(false);
-  const Inputsearch = () => {
-    setInputVisible(!inputVisible)
-  };
-
-  const [search, setsearch] = useState('');
+  const [search, setSearch] = useState('');
   const [weatherData, setWeatherData] = useState(null);
 
+  const Inputsearch = () => {
+    setInputVisible(!inputVisible);
+  };
 
   const City = () => {
     if (!search) return;
-    axios.get(
-      `https://api.openweathermap.org/data/2.5/weather?q=${search}&appid=b570b29014e08f958e407400d5ae4059&units=metric`
-    ).then((res) => {
-      console.log(res.data)
-      setWeatherData(res.data)
-      setsearch('')
-    }).catch((error) => {
-      setWeatherData('')
-      console.log(error)
-    })
-
+    axios
+      .get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${search}&appid=b570b29014e08f958e407400d5ae4059&units=metric`
+      )
+      .then((res) => {
+        setWeatherData(res.data);
+        setSearch('');
+      })
+      .catch((error) => {
+        setWeatherData(null);
+        console.log(error);
+      });
   };
 
-
+  // Function to get weekday name
+  const getWeekday = (timestamp) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const date = new Date(timestamp * 1000);
+    return days[date.getDay()];
+  };
 
   return (
-
     <View style={styles.container}>
-      <View>
+      <Image source={require('../assets/backgrond.jpg')} style={styles.backgroundImage} />
+      
+      {/* Dark Overlay for Better Visibility */}
+      <View style={styles.overlay} />
 
-        <Image blurRadius={10} source={require("../assets/background.jpg")} style={styles.Imagebackground}></Image>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Weather App</Text>
+        <TouchableOpacity onPress={Inputsearch}>
+          <Image source={require('../assets/search.png')} style={styles.searchIcon} />
+        </TouchableOpacity>
+      </View>
 
-        <View style={{ position: 'absolute', marginTop: 25, marginLeft: 85, }}>
-
-          <Text style={{ fontSize: 30, fontWeight: 200, }} >Weather App</Text>
-
-        </View>
-
-
-
-
-
-
-        <View style={{ position: "absolute", marginTop: 50, }}>
-          <TouchableOpacity onPress={Inputsearch}>
-            <Image source={require("../assets/search.png")} style={{ height: 25, width: 30, marginTop: 46, tintColor: "white", }} ></Image>
+      {/* Search Input */}
+      {inputVisible && (
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter city"
+            value={search}
+            onChangeText={setSearch}
+            placeholderTextColor="black"
+          />
+          <TouchableOpacity onPress={City} style={styles.submitButton}>
+            <Text style={styles.submitButtonText}>SUBMIT</Text>
           </TouchableOpacity>
-          {inputVisible && (<TextInput style={styles.Inputbutton} placeholder='enter city' value={search} onChangeText={setsearch} placeholderTextColor={"black"} ></TextInput>)}
-
-
-          {inputVisible && (<TouchableOpacity onPress={City}>
-            <Text style={styles.buttondesign}>SUBMIT</Text>
-          </TouchableOpacity>)}
         </View>
-        <View style={{ flexDirection: "column", justifyContent: "center", marginTop: 350, flex: 1, alignItems: "center", }}>
-          {error && <Text style={styles.errorText}>{error}</Text>}
+      )}
 
-          {weatherData ? (
-            <Text style={{ marginLeft: 50, fontWeight: 'bold', position: 'absolute', marginTop: 240 }}>
-              <View style={{ flexDirection: "column", justifyContent: 'center' }}>
-
-                <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                  <Image source={require("../assets/weather-app.png")} style={{ width: 60, height: 60, }} />
-                </View>
-               <Text style={{ fontSize: 50, fontWeight: 700, textAlign: "centerright" }}>{weatherData.main.temp}°C</Text>
-
-                <Text style={{ fontSize: 30, fontWeight: 400, marginBottom: 40, textAlign: "center", color: "black" }}>{weatherData.name}</Text>
-                
-                <Text style={{ fontSize: 40, fontWeight: 340, }}>{weatherData.weather[0].description}</Text>
-              </View>
-
-
-
-
-
-            </Text>
-
-
-          ) : (
-            <Text style={{ marginLeft: 50, fontWeight: 'bold', position: "absolute", marginTop: 250 }}>
-              Enter a city to see the weather.
-            </Text>
-
-          )}
-
-        </View>
-
+      {/* Weather Data */}
+      <View style={styles.weatherContainer}>
+        {weatherData ? (
+          <View style={styles.weatherCard}>
+            <Image source={require('../assets/weather-app.png')} style={styles.weatherIcon} />
+            <Text style={styles.temp}>{weatherData.main.temp}°C</Text>
+            <Text style={styles.city}>{weatherData.name}</Text>
+            <Text style={styles.weekday}>{getWeekday(weatherData.dt)}</Text>
+            <Text style={styles.description}>{weatherData.weather[0].description}</Text>
+          </View>
+        ) : (
+          <Text style={styles.placeholderText}>Enter a city to see the weather.</Text>
+        )}
       </View>
     </View>
-
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "column",
-
-
-
+    backgroundColor: '#000',
   },
-  Imagebackground: {
-
-    resizeMode: 'cover',
+  backgroundImage: {
     width: windowWidth,
     height: windowHeight,
     position: 'absolute',
-    top: 0,
-    left: 0,
-
-
+    resizeMode: 'cover',
   },
-
-  Inputbutton: {
-
-    position: 'absolute',
-
-    marginLeft: 30,
-    backgroundColor: "white",
-
-    marginTop: 40,
-    height: 40,
-    width: 325,
-    borderColor: 'white',
-    borderWidth: 1,
-    padding: 8,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Dark overlay for better contrast
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 50,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  searchIcon: {
+    height: 25,
+    width: 30,
+    tintColor: 'white',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  input: {
+    backgroundColor: 'white',
+    height: 45,
+    width: 250,
     borderRadius: 25,
-
+    paddingHorizontal: 15,
+    fontSize: 16,
+    color: 'black',
+    marginRight: 10,
   },
-  buttondesign: {
-    fontSize: 15,
-    fontWeight: "500",
-    margin: 50,
-    padding: 5,
-    marginTop: 30,
-    marginLeft: 80,
-    textAlign: "center",
-    borderWidth: 1,
-    borderRadius: 50,
-    height: 35,
-    width: 200,
-    backgroundColor: "white",
-    borderColor: "white"
-
-  }
-
-
+  submitButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  weatherContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  weatherCard: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 20,
+    borderRadius: 15,
+    width: '80%',
+  },
+  weatherIcon: {
+    width: 60,
+    height: 60,
+    marginBottom: 10,
+  },
+  temp: {
+    fontSize: 50,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
+  },
+  city: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  weekday: {
+    fontSize: 22,
+    color: '#E0E0E0',
+    marginVertical: 5,
+  },
+  description: {
+    fontSize: 24,
+    fontWeight: '300',
+    color: '#FFFFFF',
+  },
+  placeholderText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
 });
+

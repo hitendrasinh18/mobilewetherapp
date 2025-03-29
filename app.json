@@ -18,7 +18,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/weather.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.weatherapplication"
     },
     "web": {
       "favicon": "./assets/favicon.png"
